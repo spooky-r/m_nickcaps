@@ -67,11 +67,15 @@ public:
             */
             return MOD_RES_PASSTHRU;
 
-        if (!this->IsExempt(user, chan)) {
-            if (chan->IsModeSet(&mode) && this->DenyNick(user->nick)) {
-                this->ShowErrorToUser(user, chan->name.c_str())
-                return MOD_RES_DENY;
+        if (chan->IsModeSet(&mode) && !this->IsExempt(user, chan) && this->DenyNick(user->nick.c_str())) {
+            // 609 hijacked from m_joinflood.  TODO find a new magic error number?
+            if (this->maxcaps == 100) {
+                // special case.  remove "or more" if at 100%.  mildly dirty.
+                user->WriteNumeric(609, "%s :Can't join channel %s (+U). Nicknames longer than %d characters cannot contain %d%% capital letters.", user->nick.c_str(), cname, this->minlen, this->maxcaps);
+            } else {
+                user->WriteNumeric(609, "%s :Can't join channel %s (+U). Nicknames longer than %d characters cannot contain %d%% capital letters or more.", user->nick.c_str(), cname, this->minlen, this->maxcaps);
             }
+            return MOD_RES_DENY;
         }
 
         return MOD_RES_PASSTHRU;
@@ -81,19 +85,21 @@ public:
     */
     virtual ModResult OnUserPreNick(User* user, const std::string &newnick)
     {
-            UserChanList chans(user->chans);
+        UserChanList chans(user->chans);
 
-            // check all the channels a user is a part of to see if any have +U
-            for (UCListIter i = chans.begin(); i != chans.end(); ++i)
-            {
-                Channel* c = *i;
+        // check all the channels a user is a part of to see if any have +U
+        for (UCListIter i = chans.begin(); i != chans.end(); ++i)
+        {
+            Channel* c = *i;
 
-                if (!this->IsExempt(user, chan)) {
-                    if (c->IsModeSet(&mode) && this->DenyNick(newnick)) {
-                        this->ShowErrorToUser(user, c->name.c_str())
-                        return MOD_RES_DENY;
-                    }
+            if (c->IsModeSet(&mode) && !this->IsExempt(user, c) && this->DenyNick(newnick)) {
+                if (this->maxcaps == 100) {
+                // special case.  remove "or more" if at 100%.  mildly dirty.
+                    user->WriteNumeric(ERR_CANTCHANGENICK, "%s :Can't change nickname as nickname is invalid while on channel %s (+U). Nicknames longer than %d characters cannot contain %d%% capital letters.", user->nick.c_str(), c->name.c_str(), this->minlen, this->maxcaps);
+                } else {
+                    user->WriteNumeric(ERR_CANTCHANGENICK, "%s :Can't change nickname as nickname is invalid while on channel %s (+U). Nicknames longer than %d characters cannot contain %d%% capital letters or more.", user->nick.c_str(), c->name.c_str(), this->minlen, this->maxcaps);
                 }
+                return MOD_RES_DENY;
             }
         }
         return MOD_RES_PASSTHRU;
@@ -112,11 +118,10 @@ public:
 
     /* Check if a user is exempt.
      */
-    bool IsExempt(const User* user, const Channel* chan) {
+    bool IsExempt(User* user, Channel* chan) {
         // ignore OPERS
-        if (!IS_OPER(user)) {
+        if (IS_OPER(user))
             return true;
-        }
     
         // channel ops (or better?) are exempt
         if (chan->GetPrefixValue(user) >= OP_VALUE)
@@ -125,22 +130,12 @@ public:
         return false;
     }
 
-    void ShowErrorToUser(const User* user, const char* channame) {
-        // 609 hijacked from m_joinflood.  TODO find a new magic error number
-        if (this->maxcaps == 100) {
-        // special case.  remove "or more" if at 100%.  mildly dirty.
-            user->WriteNumeric(ERR_CANTCHANGENICK, "%s :Can't change nickname as nickname is invalid while on channel %s (+U). Nicknames longer than %d characters cannot contain %d%% capital letters.", user->nick.c_str(), c->name.c_str(), this->minlen, this->maxcaps);
-        } else {
-            user->WriteNumeric(ERR_CANTCHANGENICK, "%s :Can't change nickname as nickname is invalid while on channel %s (+U). Nicknames longer than %d characters cannot contain %d%% capital letters or more.", user->nick.c_str(), channame, this->minlen, this->maxcaps);
-        }
-    }
-
     /* Check a nick to see if it contains too many
        capital letters as defined in the configuration file.
 
        Returns: true if too many caps, false if not.
     */
-    bool CheckNickCaps(const std::string &nick)
+    bool DenyNick(const std::string &nick)
     {
         unsigned int total = 0;
 
