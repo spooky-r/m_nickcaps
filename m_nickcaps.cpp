@@ -81,20 +81,23 @@ public:
 	*/
 	virtual ModResult OnUserPreNick(User* user, const std::string &newnick)
 	{
-		UserChanList chans(user->chans);
+        // ignore OPERS
+        if (!IS_OPER(user)) {
 
-		// check all the channels a user is a part of to see if any have +U
-		for (UCListIter i = chans.begin(); i != chans.end(); ++i)
-		{
-			Channel* c = *i;
-			
-			if (c->IsModeSet(&mode) && this->DenyNick(newnick)) {
-				// too many caps
-				user->WriteNumeric(ERR_CANTCHANGENICK, "%s :Can't change nickname as nickname is invalid while on channel %s (+U). Nicknames longer than %d characters cannot contain %d%% capital letters or more.", user->nick.c_str(), c->name.c_str(), this->minlen, this->maxcaps);
-				return MOD_RES_DENY;
-			}
+		    UserChanList chans(user->chans);
+
+		    // check all the channels a user is a part of to see if any have +U
+		    for (UCListIter i = chans.begin(); i != chans.end(); ++i)
+		    {
+			    Channel* c = *i;			
+
+			    if (c->IsModeSet(&mode) && this->DenyNick(newnick)) {
+				    // too many caps
+				    user->WriteNumeric(ERR_CANTCHANGENICK, "%s :Can't change nickname as nickname is invalid while on channel %s (+U). Nicknames longer than %d characters cannot contain %d%% capital letters or more.", user->nick.c_str(), c->name.c_str(), this->minlen, this->maxcaps);
+				    return MOD_RES_DENY;
+			    }
+		    }
 		}
-		
 		return MOD_RES_PASSTHRU;
 	}
 
