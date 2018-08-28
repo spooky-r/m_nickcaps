@@ -93,7 +93,12 @@ public:
 
 			    if (c->IsModeSet(&mode) && this->DenyNick(newnick)) {
 				    // too many caps
-				    user->WriteNumeric(ERR_CANTCHANGENICK, "%s :Can't change nickname as nickname is invalid while on channel %s (+U). Nicknames longer than %d characters cannot contain %d%% capital letters or more.", user->nick.c_str(), c->name.c_str(), this->minlen, this->maxcaps);
+                    if (this->maxcaps == 100) {
+                        // special case.  remove "or more" if at 100%.  mildly dirty.
+				        user->WriteNumeric(ERR_CANTCHANGENICK, "%s :Can't change nickname as nickname is invalid while on channel %s (+U). Nicknames longer than %d characters cannot contain %d%% capital letters.", user->nick.c_str(), c->name.c_str(), this->minlen, this->maxcaps);
+                    } else {
+                        user->WriteNumeric(ERR_CANTCHANGENICK, "%s :Can't change nickname as nickname is invalid while on channel %s (+U). Nicknames longer than %d characters cannot contain %d%% capital letters or more.", user->nick.c_str(), c->name.c_str(), this->minlen, this->maxcaps);
+                    }
 				    return MOD_RES_DENY;
 			    }
 		    }
