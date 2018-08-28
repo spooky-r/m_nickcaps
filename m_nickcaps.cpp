@@ -105,10 +105,8 @@ public:
 
 	virtual Version GetVersion() 
 	{
-		// channel mode must be running on all linked servers (VF_COMMON) ??
-		// it has to be static because it defines a channel mode (VF_STATIC) ?? but it can't be rehashed? (from 1.0 docs)
-		// TODO: figure this out.
-		return Version("Provides channel mode +U to prevent nicks with too many capital letters.", VF_STATIC | VF_COMMON);
+		// channel mode must be running on all linked servers (VF_COMMON)
+		return Version("Provides channel mode +U to prevent nicks with too many capital letters.",  VF_COMMON);
 	}
 	
 	/* Check a nick to see if it contains too many
