@@ -15,7 +15,9 @@
 
 #include "inspircd.h"
 
+
 /* $ModDesc: Provides channel mode +U (prevent nick changes or channel joins if the nick contains too many capital letters) */
+/* $ModDepends: core 2.0 */
 
 /* Defines the mode +U */
 class ChannelNoAllCapsNicks : public SimpleChannelModeHandler
