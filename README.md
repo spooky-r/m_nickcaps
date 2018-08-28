@@ -2,7 +2,7 @@
 For two cool dudes named ben.
 ## Description ##
 "m_nickcaps" blocks changing nicks in or joining a channel with +U if the nick has too many capital letters.  
-(This module also allows opers to freely change their nicks whether the mode is set or not.)
+(This module also allows opers and channel ops to freely change their nicks whether the mode is set or not.)
 ## HowTo Guide ##
 To install:
 - Clone or download the repository.
