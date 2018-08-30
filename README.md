@@ -12,8 +12,8 @@ To install:
 Configuring:
 - Add module to module.conf `<module name="m_nickcaps.so">`
 - Edit module configuration for `<nickcaps>`:
-  - "minlen": minimum length a nick can be before being checked.
-  - "maxcaps": percentage of a nick, beyond minlen, that can be capital letters.
+  - "minlen": minimum length a nick can be before being checked for capital letters. A "minlen" of 4 will check a nick like "test" but not "tim"
+  - "maxcaps": percentage of a nick, beyond minlen, that cannot be capital letters. A "maxcaps" of 50% will not allow a nick like "ABcd" and 51% would allow it.
   - "capsmap": a string of characters considered capital letters.
 - Set any channel +U as needed. Invalid nicks already in the channel will remain, however.
 
